@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-Time Tourists Location Monitoring and Emergency Notification System</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: radial-gradient(circle at center, #0a1b2a, #020c15);
+            color: #cfeff1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            gap: 30px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 20px;
+            color: #1ef0b6;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .radar-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            width: 550px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .radar-title {
+            color: #1ef0b6;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        /* Radar Circle */
+        .radar {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: radial-gradient(circle, #031a25, #01090f);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        /* Dots representing tourists */
+        .dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ffffff; /* Changed to White */
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.8); /* Changed glow to White */
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+            animation: pulse-normal 1.5s infinite alternate;
+        }
+
+        /* Normal Dot (White) Pulse Animation */
+        @keyframes pulse-normal {
+            0% {
+                box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                box-shadow: 0 0 12px rgba(255, 255, 255, 1);
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+
+        .dot.alert {
+            background: #ff0000; /* Changed to Red */
+            box-shadow: 0 0 8px rgba(255, 0, 0, 0.8); /* Changed glow to Red */
+            animation: pulse-alert 0.7s infinite alternate;
+        }
+
+        /* Alert Dot (Red) Pulse Animation (flashing) */
+        @keyframes pulse-alert {
+            0% {
+                box-shadow: 0 0 8px rgba(255, 0, 0, 0.8);
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                box-shadow: 0 0 16px rgba(255, 0, 0, 1);
+                transform: translate(-50%, -50%) scale(1.3);
+            }
+        }
+
+        .range-info {
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 13px;
+            color: #8fffe0;
+            opacity: 0.8;
+        }
+
+        footer {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Real-Time Tourists Location Monitoring and Emergency Notification System</h1>
+
+    <div class="container">
+        <div class="radar-box">
+            <div class="radar-title">Outside Classroom (Outdoor Area)</div>
+            <div class="radar" id="radarOutside"></div>
+            <div class="range-info">Range: 2 km</div>
+        </div>
+    </div>
+
+    <footer>Dot radar shows tourist positions — replace with live GPS data for real deployment.</footer>
+
+    <script>
+        // Convert polar coordinates (angle + distance) to X/Y
+        function polarToXY(angle, distance, size) {
+            const rad = angle * Math.PI / 180;
+            // Scale distance (0-90) to the radar radius (size / 2)
+            const r = (distance / 100) * (size / 2);
+            const x = (size / 2) + r * Math.cos(rad);
+            const y = (size / 2) + r * Math.sin(rad);
+            return { x, y };
+        }
+
+        // Add a dot marker
+        function createDot(radar, id, angle, distance, alert = false) {
+            const size = radar.offsetWidth;
+            const pos = polarToXY(angle, distance, size);
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            if (alert) dot.classList.add('alert');
+            dot.style.left = pos.x + 'px';
+            dot.style.top = pos.y + 'px';
+            radar.appendChild(dot);
+        }
+
+        // Generate random tourist dots
+        function generateDots(radar, count) {
+            // Remove existing dots before generating new ones
+            radar.querySelectorAll('.dot').forEach(d => d.remove());
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * 360;
+                // Keep distance maximum to 90 to prevent dots from touching the border
+                const distance = Math.random() * 90;
+                const isAlert = Math.random() < 0.25; // 25% alert probability (Red Dot)
+                createDot(radar, i, angle, distance, isAlert);
+            }
+        }
+
+        // Only getting the Outside radar element
+        const radarOutside = document.getElementById('radarOutside');
+
+        // Initial render with 8 dots
+        const dotCount = 8;
+        generateDots(radarOutside, dotCount);
+
+        // Simulate tourist movement
+        setInterval(() => {
+            generateDots(radarOutside, dotCount);
+        }, 1500);
+    </script>
+</body>
+</html>

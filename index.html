@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Tourist Monitoring & Emergency Alert</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background: #eef2f3;
+      color: #333;
+    }
+
+    .navbar {
+      background: linear-gradient(90deg, #0078ff, #00b4d8);
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .menu {
+      display: flex;
+      justify-content: center;
+      background-color: #006edc;
+      padding: 10px;
+      gap: 30px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu a {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 8px 15px;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    .menu a:hover {
+      background-color: #00b4d8;
+      color: #fff;
+    }
+
+    .main-container {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    #map {
+      flex: 2;
+      height: 500px;
+      border-radius: 15px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-container {
+      flex: 1;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-container h2 {
+      color: #0078ff;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .info-card {
+      background: #f5f8fb;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      border-left: 4px solid #00b4d8;
+    }
+
+    .alert-card {
+      background: #fff3f3;
+      border-left: 4px solid red;
+    }
+
+    .status.safe {
+      color: green;
+      font-weight: bold;
+    }
+
+    .status.danger {
+      color: red;
+      font-weight: bold;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #ff4747;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #e63946;
+    }
+
+    footer {
+      background-color: #0078ff;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 900px) {
+      .main-container {
+        flex-direction: column;
+      }
+
+      #map {
+        height: 400px;
+      }
+
+      .menu {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="navbar">
+    <h1>📍 Real-Time Tourist Monitoring & Emergency Alert System</h1>
+  </header>
+
+  <nav class="menu">
+    <a href="#home">🏠 Home</a>
+    <a href="classroom.html">🏫 Classroom</a>
+    <a href="outdoor.html">🌳 Outdoor Classroom</a>
+  </nav>
+
+  <section class="main-container" id="home">
+    <div id="map" class="map-container"></div>
+
+    <div class="info-container">
+      <h2>Tourist Information</h2>
+
+      <div class="info-card" id="tourist-info">
+        <p><strong>ID:</strong> T101</p>
+        <p><strong>Name:</strong> Rupesh Manore</p>
+        <p><strong>College Name:</strong> JSPM Hadapsar</p>
+        <p><strong>Current Location:</strong> <span id="loc">Loading...</span></p>
+        <p><strong>Status:</strong> <span id="status" class="status safe">Safe ✅</span></p>
+      </div>
+
+      <div class="info-card">
+        <p><strong>ID:</strong> T102</p>
+        <p><strong>Name:</strong> Lokesh B.</p>
+        <p><strong>Address:</strong> JSMP Hadapsar<br>Hadapsar, Pune, Maharashtra 411028</p>
+        <p><strong>Status:</strong> <span class="status safe">Safe ✅</span></p>
+      </div>
+
+      <div class="info-card alert-card" id="alert-panel">
+        <h3>🚨 Emergency Alerts</h3>
+        <p id="alert-msg">No active alerts</p>
+      </div>
+
+      <button id="emergency-btn">Simulate Emergency Alert</button>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 IoT ESP32 Location Tracker | Designed by DC TechCore</p>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+  <script>
+    // Initialize map centered around Hadapsar
+    const map = L.map("map").setView([18.4895, 73.9345], 14);
+
+    // Add map tiles
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+
+    // 1 KM Classroom Zone (Blue)
+    const classroomCircle = L.circle([18.4895, 73.9345], {
+      color: "blue",
+      fillColor: "#3d5af1",
+      fillOpacity: 0.2,
+      radius: 300, // 1 km
+    })
+      .addTo(map)
+      .bindPopup("<b>Classroom Zone</b><br>Radius: 1 km");
+
+    // 2 KM Outdoor Zone (Green)
+    const outdoorCircle = L.circle([18.4895, 73.9345], {
+      color: "green",
+      fillColor: "#00cc44",
+      fillOpacity: 0.15,
+      radius: 500, // 2 km
+    })
+      .addTo(map)
+      .bindPopup("<b>Outdoor Zone</b><br>Radius: 2 km");
+
+    // Tourist 1 (Rupeshg)
+    let lat = 18.4900;
+    let lng = 73.9350;
+    let marker1 = L.marker([lat, lng]).addTo(map);
+    marker1
+      .bindPopup(
+        "<b>Tourist T101:</b> Rupeshg Manore<br><b>Location:</b> JSMP Hadapsar"
+      )
+      .openPopup();
+
+    // Tourist 2 (Lokesh)
+    const lokeshLat = 18.484992;
+    const lokeshLng = 73.937781;
+    const marker2 = L.marker([lokeshLat, lokeshLng]).addTo(map);
+    marker2.bindPopup(
+      "<b>Tourist T102:</b> Lokesh B.<br>📍 FWGP+24P, Kumar Pebble Park Rd,<br>Satar Nagar, Hadapsar, Pune"
+    );
+
+    // Update initial location
+    document.getElementById("loc").innerText = `${lat.toFixed(6)}, ${lng.toFixed(
+      6
+    )}`;
+
+    // Simulate movement and zone detection
+    setInterval(() => {
+      lat += (Math.random() - 0.5) * 0.0005;
+      lng += (Math.random() - 0.5) * 0.0005;
+      marker1.setLatLng([lat, lng]);
+      document.getElementById("loc").innerText = `${lat.toFixed(
+        6
+      )}, ${lng.toFixed(6)}`;
+
+      const distance = map.distance([18.4895, 73.9345], [lat, lng]);
+      const status = document.getElementById("status");
+
+      status.classList.remove("safe", "danger");
+
+      if (distance <= 1000) {
+        status.innerText = "Inside Classroom Zone ✅";
+        status.classList.add("safe");
+        document.getElementById("alert-msg").innerText = "No active alerts";
+      } else if (distance > 1000 && distance <= 2000) {
+        status.innerText = "At Outdoor Zone 🟢";
+        status.classList.add("safe");
+        document.getElementById("alert-msg").innerText =
+          "Tourist in outdoor project zone.";
+      } else {
+        status.innerText = "Outside Safe Zone 🚨";
+        status.classList.add("danger");
+        document.getElementById("alert-msg").innerText =
+          "⚠️ Tourist moved beyond 2 km boundary!";
+      }
+    }, 3000);
+
+    // Emergency Button
+    document
+      .getElementById("emergency-btn")
+      .addEventListener("click", () => {
+        document.getElementById("alert-msg").innerText =
+          "🚨 Emergency Triggered by Tourist T101!";
+        const status = document.getElementById("status");
+        status.classList.remove("safe");
+        status.classList.add("danger");
+        status.innerText = "EMERGENCY 🚨";
+        alert("EMERGENCY ALERT SENT to Authorities!");
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real-Time Tourists Location Monitoring and Emergency Notification System</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at center, #0a1b2a, #020c15);
+      color: #cfeff1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+      gap: 30px;
+      height: 100vh;
+    }
+
+    h1 {
+      font-size: 20px;
+      color: #1ef0b6;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      width: 100%;
+    }
+
+    .radar-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 15px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+    }
+
+    .radar-title {
+      color: #1ef0b6;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .radar {
+      position: relative;
+      width: 250px;
+      height: 250px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: radial-gradient(circle, #063047, #02141f);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .rings span {
+      position: absolute;
+      border: 1px dashed rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+
+    .rings span:nth-child(1) { width: 80%; height: 80%; top: 10%; left: 10%; }
+    .rings span:nth-child(2) { width: 60%; height: 60%; top: 20%; left: 20%; }
+    .rings span:nth-child(3) { width: 40%; height: 40%; top: 30%; left: 30%; }
+    .rings span:nth-child(4) { width: 20%; height: 20%; top: 40%; left: 40%; }
+
+    .sweep {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
+    .sweep::before {
+      content: "";
+      position: absolute;
+      width: 120%;
+      height: 120%;
+      left: -10%;
+      top: -10%;
+      background: linear-gradient(90deg, transparent 70%, rgba(30,240,182,0.15) 100%);
+      animation: spin 2s linear infinite;
+      transform-origin: 50% 50%;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .marker {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ff6b6b;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 8px rgba(255,107,107,0.8);
+    }
+
+    .label {
+      position: absolute;
+      transform: translate(-50%, -150%);
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 5px;
+      border-radius: 5px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    .marker:hover .label {
+      opacity: 1;
+    }
+
+    footer {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 500px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Real-Time Tourists Location Monitoring and Emergency Notification System</h1>
+
+  <div class="container">
+    <!-- Inside Classroom -->
+    <div class="radar-box">
+      <div class="radar-title">Inside Classroom</div>
+      <div class="radar" id="radarInside">
+        <div class="rings">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="sweep"></div>
+      </div>
+    </div>
+
+   
+
+  <footer>Simulated radar showing tourists inside and outside the classroom. Replace with live GPS or sensor data.</footer>
+
+  <script>
+    function polarToXY(angle, distance, size) {
+      const rad = angle * Math.PI / 180;
+      const r = (distance / 100) * (size / 2);
+      const x = (size / 2) + r * Math.cos(rad);
+      const y = (size / 2) + r * Math.sin(rad);
+      return { x, y };
+    }
+
+    function createMarker(radar, id, angle, distance, label) {
+      const size = radar.offsetWidth;
+      const pos = polarToXY(angle, distance, size);
+      const marker = document.createElement('div');
+      marker.className = 'marker';
+      marker.style.left = pos.x + 'px';
+      marker.style.top = pos.y + 'px';
+
+      const lbl = document.createElement('div');
+      lbl.className = 'label';
+      lbl.textContent = label;
+
+      marker.appendChild(lbl);
+      radar.appendChild(marker);
+    }
+
+    function randomObjects(radar, count) {
+      radar.querySelectorAll('.marker').forEach(m => m.remove());
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * 360;
+        const distance = Math.random() * 90;
+        const label = "Tourist " + (i + 1);
+        createMarker(radar, i, angle, distance, label);
+      }
+    }
+
+    const radarInside = document.getElementById('radarInside');
+    const radarOutside = document.getElementById('radarOutside');
+
+    randomObjects(radarInside, 2);
+    randomObjects(radarOutside, 2);
+
+    // simulate movement every 1 second
+    setInterval(() => {
+      randomObjects(radarInside, 2);
+      randomObjects(radarOutside, 2);
+    }, 1000);
+  </script>
+</body>
+</html>
